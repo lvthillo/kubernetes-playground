@@ -1,25 +1,26 @@
 package main
 
 import (
-	"net/http"
+	"movie-app/db"
+	"movie-app/handlers"
 
 	"github.com/gin-gonic/gin"
 )
 
-func handleGetAllMovies(c *gin.Context) {
-	var loadedMovies, err = GetAllMovies()
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"msg": err})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"movies": loadedMovies})
-}
+//func init() {
+//	db.Connect()
+//}
 
 func main() {
+
+	// Configure
+	db.Connect()
 	r := gin.Default()
-	//r.GET("/movies/:id", handleGetTask)
-	r.GET("/movies/", handleGetAllMovies)
-	//r.PUT("/tasks/", handleCreateTask)
-	//r.POST("/tasks/", handleUpdateTask)
-	r.Run() // listen and serve on 0.0.0.0:8080
+
+	// Routes
+	r.GET("/movies", handlers.GetAllMoviesHandler)
+	r.POST("/movies", handlers.AddMovieHandler)
+
+	// listen and serve on 0.0.0.0:8080
+	r.Run()
 }
