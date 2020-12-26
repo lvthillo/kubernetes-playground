@@ -18,6 +18,21 @@ func GetAllMoviesHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"movies": loadedMovies})
 }
 
+// GetMovieByIDHandler to get a movie by ID
+func GetMovieByIDHandler(c *gin.Context) {
+	var mov movie.Movie
+	if err := c.BindUri(&mov); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"msg": err})
+		return
+	}
+	var loadedMovie, err = movie.GetMovieByID(mov.ID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"msg": err})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"ID": loadedMovie.ID, "Title": loadedMovie.Title, "Year": loadedMovie.Year, "Watched": loadedMovie.Watched})
+}
+
 // AddMovieHandler to add a movie
 func AddMovieHandler(c *gin.Context) {
 	var mov movie.Movie

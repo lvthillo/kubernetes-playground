@@ -15,10 +15,8 @@ const (
 	connectionStringTemplate = "mongodb://%s:%s@%s"
 )
 
-var (
-	Conn *mongo.Client
-	Ctx  context.Context
-)
+// Client to connect to mongodb
+var Client *mongo.Client
 
 // Connect with create the connection to MongoDB
 func Connect() {
@@ -28,29 +26,26 @@ func Connect() {
 
 	connectionURI := fmt.Sprintf(connectionStringTemplate, username, password, clusterEndpoint)
 
-	context, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	//context, cancel := context.WithTimeout(context.Background(), connectTimeout*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	//Cancel context to avoid memory leak
 	defer cancel()
 
 	client, err := mongo.NewClient(options.Client().ApplyURI(connectionURI))
 	if err != nil {
-		log.Printf("Failed to create client: %v", err)
+		log.Fatalf("Failed to create client: %v", err)
 	}
 
-	err = client.Connect(context)
+	err = client.Connect(ctx)
 	if err != nil {
-		log.Printf("Failed to connect to cluster: %v", err)
+		log.Fatalf("Failed to connect to cluster: %v", err)
 	}
-	//defer client.Disconnect(context)
 
 	// Force a connection to verify our connection string
-	err = client.Ping(context, nil)
+	err = client.Ping(ctx, nil)
 	if err != nil {
-		log.Printf("Failed to ping cluster: %v", err)
+		log.Fatalf("Failed to ping cluster: %v", err)
 	}
 
-	Conn = client
-	Ctx = context
-
+	Client = client
 	log.Printf("Connected to MongoDB!")
 }
