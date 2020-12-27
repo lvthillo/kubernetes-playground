@@ -2,7 +2,6 @@ package movie
 
 import (
 	"context"
-	"errors"
 	"log"
 	"movie-app/db"
 
@@ -11,10 +10,10 @@ import (
 )
 
 // Movie data structure
-// each Movie struct will contain an ID, a Title and a Watched status.
+// each Movie struct will contain an ID, a Title, a Year and a Watched status.
 // the second part of the struct shows how these 'fields' can be accessed in JSON.
 type Movie struct {
-	ID      primitive.ObjectID `json:"id"`
+	ID      primitive.ObjectID `json:"_id" bson:"_id"`
 	Title   string             `json:"title"`
 	Year    int                `json:"year"`
 	Watched bool               `json:"watched"`
@@ -41,21 +40,15 @@ func GetAllMovies() ([]*Movie, error) {
 
 // GetMovieByID retrieves a movie by its id from the db
 func GetMovieByID(id primitive.ObjectID) (*Movie, error) {
+	//movie := Movie{}
 	var movie *Movie
-
 	collection := db.Client.Database("movies").Collection("movies")
-	result := collection.FindOne(context.TODO(), bson.D{})
-	if result == nil {
-		return nil, errors.New("Could not find a movie")
-	}
-	err := result.Decode(&movie)
-
+	err := collection.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&movie)
 	if err != nil {
-		log.Printf("Failed marshalling %v", err)
-		return nil, err
+		log.Printf("Error: %v", err)
 	}
-	log.Printf("Movie: %v", movie)
-	return movie, nil
+	return movie, err
+
 }
 
 // AddMovie adds a movie to the db
@@ -70,4 +63,26 @@ func AddMovie(movie *Movie) (primitive.ObjectID, error) {
 	return oid, nil
 }
 
-// DeleteMovie deletes a movie from the db
+// DeleteMovieByID deletes a movie by its id from the db
+func DeleteMovieByID(id primitive.ObjectID) error {
+	collection := db.Client.Database("movies").Collection("movies")
+	_, err := collection.DeleteOne(context.TODO(), bson.M{"_id": id})
+	if err != nil {
+		log.Printf("Error: %v", err)
+	}
+	return nil
+}
+
+// WatchedMovie will put a movie its attribue 'watched' on true
+func WatchedMovie(id primitive.ObjectID) error {
+	collection := db.Client.Database("movies").Collection("movies")
+	_, err := collection.UpdateOne(context.TODO(),
+		bson.M{"_id": id},
+		bson.D{
+			{"$set", bson.D{{"watched", true}}},
+		})
+	if err != nil {
+		log.Printf("Error: %v", err)
+	}
+	return nil
+}
