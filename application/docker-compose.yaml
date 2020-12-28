@@ -24,19 +24,19 @@ services:
       ME_CONFIG_MONGODB_SERVER: mongo
     networks:
       app-env:
-  backend:
-    build: ./backend
-    container_name: backend
-    ports:
-        - "8080:8080"
-    environment:
-      MONGODB_USERNAME: root-user
-      MONGODB_PASSWORD: secret
-      MONGODB_ENDPOINT: mongo:27017
-    depends_on: 
-      - mongodb
-    networks:
-      app-env:
+  # backend:
+  #   build: ./backend
+  #   container_name: backend
+  #   ports:
+  #       - "8080:8080"
+  #   environment:
+  #     MONGODB_USERNAME: root-user
+  #     MONGODB_PASSWORD: secret
+  #     MONGODB_ENDPOINT: mongo:27017
+  #   depends_on: 
+  #     - mongodb
+  #   networks:
+  #     app-env:
 
 networks:
   app-env:

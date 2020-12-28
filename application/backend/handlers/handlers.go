@@ -16,7 +16,7 @@ func GetAllMoviesHandler(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"msg": err})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"movies": loadedMovies})
+	c.JSON(http.StatusOK, loadedMovies) //gin.H{loadedMovies})
 }
 
 // GetMovieByIDHandler to get a movie by ID
@@ -25,7 +25,6 @@ func GetMovieByIDHandler(c *gin.Context) {
 	if err != nil {
 		log.Println("Invalid id")
 	}
-
 	loadedMovie, err := movie.GetMovieByID(movieID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"msg": err})
@@ -57,7 +56,6 @@ func DeleteMovieByIDHandler(c *gin.Context) {
 	if err != nil {
 		log.Println("Invalid id")
 	}
-
 	if err := movie.DeleteMovieByID(movieID); err != nil {
 		c.JSON(http.StatusInternalServerError, err)
 		return

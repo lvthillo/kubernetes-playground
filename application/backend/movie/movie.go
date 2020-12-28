@@ -40,7 +40,6 @@ func GetAllMovies() ([]*Movie, error) {
 
 // GetMovieByID retrieves a movie by its id from the db
 func GetMovieByID(id primitive.ObjectID) (*Movie, error) {
-	//movie := Movie{}
 	var movie *Movie
 	collection := db.Client.Database("movies").Collection("movies")
 	err := collection.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&movie)

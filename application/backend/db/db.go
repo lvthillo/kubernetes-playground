@@ -18,7 +18,7 @@ const (
 // Client to connect to mongodb
 var Client *mongo.Client
 
-// Connect with create the connection to MongoDB
+// Connect to create the connection to MongoDB
 func Connect() {
 	username := os.Getenv("MONGODB_USERNAME")
 	password := os.Getenv("MONGODB_PASSWORD")
