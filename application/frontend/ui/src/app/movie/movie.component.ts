@@ -12,6 +12,7 @@ export class MovieComponent implements OnInit {
   watchedMovies: Movie[];
   movieTitle: string;
   movieYear: number;
+  movieWatched: boolean;
 
   constructor(private movieService: MovieService) { }
 
@@ -31,7 +32,7 @@ export class MovieComponent implements OnInit {
       title: this.movieTitle,
       _id: '',
       year: this.movieYear,
-      watched: false
+      watched: this.movieWatched
     };
 
     this.movieService.addMovie(newMovie).subscribe(() => {

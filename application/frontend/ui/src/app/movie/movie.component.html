@@ -58,5 +58,13 @@
   </tr>
   </tbody>
 </table>
-<!--<input placeholder="description..." [(ngModel)]="movieTitle">
-<button class="btn btn-primary" (click)="addMovie()">Add</button>-->
+<h3>Add Movie</h3>
+<table class="table">
+  <thead>
+  <tr>
+    <th>Movie Title:  <input placeholder="Title..." [(ngModel)]="movieTitle"></th>
+    <th>Movie Release Year:  <input type="number" placeholder="Year..." [(ngModel)]="movieYear"></th>
+    <th>Watched Movie:  <input type="checkbox" name="check" value="true" [(ngModel)]="movieWatched"></th>
+    <th><button class="btn btn-primary" (click)="addMovie()">Add</button></th>
+  </tr>
+  </thead>

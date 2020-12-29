@@ -1,3 +1,4 @@
 export const environment = {
-  production: true
+  production: true,
+  gateway: 'http://backend:8080',
 };
