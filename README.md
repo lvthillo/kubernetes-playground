@@ -19,5 +19,3 @@ node-1       Ready    <none>                 4h44m   v1.20.0
 node-2       Ready    <none>                 4h41m   v1.20.0
 ```
 
-
-```

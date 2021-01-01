@@ -20,19 +20,19 @@ func GetAllMoviesHandler(c *gin.Context) {
 }
 
 // GetMovieByIDHandler to get a movie by ID
-func GetMovieByIDHandler(c *gin.Context) {
-	movieID, err := primitive.ObjectIDFromHex(c.Param("id"))
-	if err != nil {
-		log.Println("Invalid id")
-	}
-	loadedMovie, err := movie.GetMovieByID(movieID)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"msg": err})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"id": loadedMovie.ID, "title": loadedMovie.Title,
-		"year": loadedMovie.Year, "watched": loadedMovie.Watched})
-}
+// func GetMovieByIDHandler(c *gin.Context) {
+// 	movieID, err := primitive.ObjectIDFromHex(c.Param("id"))
+// 	if err != nil {
+// 		log.Println("Invalid id")
+// 	}
+// 	loadedMovie, err := movie.GetMovieByID(movieID)
+// 	if err != nil {
+// 		c.JSON(http.StatusNotFound, gin.H{"msg": err})
+// 		return
+// 	}
+// 	c.JSON(http.StatusOK, gin.H{"id": loadedMovie.ID, "title": loadedMovie.Title,
+// 		"year": loadedMovie.Year, "watched": loadedMovie.Watched})
+// }
 
 // AddMovieHandler to add a movie
 func AddMovieHandler(c *gin.Context) {

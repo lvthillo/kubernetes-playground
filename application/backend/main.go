@@ -20,7 +20,7 @@ func main() {
 
 	// Routes
 	r.GET("/movie", handlers.GetAllMoviesHandler)
-	r.GET("/movie/:id", handlers.GetMovieByIDHandler)
+	//r.GET("/movie/:id", handlers.GetMovieByIDHandler)
 	r.POST("/movie", handlers.AddMovieHandler)
 	r.DELETE("/movie/:id", handlers.DeleteMovieByIDHandler)
 	r.PUT("/movie", handlers.WatchedMovieHandler)
