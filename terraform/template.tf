@@ -112,8 +112,7 @@ resource "kubernetes_config_map" "cm-mongodb" {
   }
 }
 
-//mongodb UI exposed to public world
-// mongodb namespace
+//mongo-express UI exposed to public world
 resource "kubernetes_deployment" "mongo-express" {
   metadata {
     name = "mongo-express"
@@ -128,7 +127,6 @@ resource "kubernetes_deployment" "mongo-express" {
 
     selector {
       match_labels = {
-        // to fix?
          app = "mongo-express"
       }
     }
@@ -194,7 +192,6 @@ resource "kubernetes_config_map" "cm-mongo-express" {
       ME_CONFIG_BASICAUTH_PASSWORD = "test"
       ME_CONFIG_MONGODB_ADMINUSERNAME = "root-user"
       ME_CONFIG_MONGODB_ADMINPASSWORD = "secret"
-      // service name of mongo (replace)
       ME_CONFIG_MONGODB_SERVER = "${kubernetes_service.svc-mongodb.metadata.0.name}"
   }
 }
@@ -213,6 +210,190 @@ resource "kubernetes_service" "svc-mongo-express" {
       port        = 8081
       target_port = 8081
       node_port   = 32000
+    }
+
+    type = "NodePort"
+  }
+}
+
+# Backend
+resource "kubernetes_deployment" "backend" {
+  metadata {
+    name = "backend"
+    namespace = "${kubernetes_namespace.demo-namespace.metadata.0.name}"
+    labels = {
+      app = "backend"
+    }
+  }
+
+  spec {
+    replicas = 1
+
+    selector {
+      match_labels = {
+         app = "backend"
+      }
+    }
+
+    template {
+      metadata {
+        labels = {
+          app = "backend"
+        }
+      }
+
+      spec {
+        container {
+          image = "lvthillo/movie-backend"
+          name  = "backend"
+
+          env_from {
+            config_map_ref {
+              name = kubernetes_config_map.cm-backend.metadata[0].name
+            }
+          }
+
+          /*resources {
+            limits {
+              cpu    = "0.5"
+              memory = "512Mi"
+            }
+            requests {
+              cpu    = "250m"
+              memory = "50Mi"
+            }
+          }*/
+
+          /*liveness_probe {
+            http_get {
+              path = "/nginx_status"
+              port = 80
+
+              http_header {
+                name  = "X-Custom-Header"
+                value = "Awesome"
+              }
+            }
+
+            initial_delay_seconds = 3
+            period_seconds        = 3
+          }*/
+        }
+      }
+    }
+  }
+}
+
+resource "kubernetes_config_map" "cm-backend" {
+  metadata {
+    name = "cm-backend"
+    namespace = "${kubernetes_namespace.demo-namespace.metadata.0.name}"
+  }
+
+  // improve creds with secret
+  data = {
+      MONGODB_USERNAME = "root-user"
+      MONGODB_PASSWORD = "secret"
+      MONGODB_ENDPOINT = "${kubernetes_service.svc-mongodb.metadata.0.name}:${kubernetes_service.svc-mongodb.spec.0.port.0.port}"
+  }
+}
+
+resource "kubernetes_service" "svc-backend" {
+  metadata {
+    name = "svc-backend"
+    namespace = "${kubernetes_namespace.demo-namespace.metadata.0.name}"
+  }
+  spec {
+    selector = {
+      app = "${kubernetes_deployment.backend.metadata.0.labels.app}"
+    }
+    session_affinity = "ClientIP"
+    port {
+      port        = 8080
+      target_port = 8080
+      node_port   = 32001
+    }
+
+    type = "NodePort"
+  }
+}
+
+# Frontend
+resource "kubernetes_deployment" "frontend" {
+  metadata {
+    name = "frontend"
+    namespace = "${kubernetes_namespace.demo-namespace.metadata.0.name}"
+    labels = {
+      app = "frontend"
+    }
+  }
+
+  spec {
+    replicas = 1
+
+    selector {
+      match_labels = {
+         app = "frontend"
+      }
+    }
+
+    template {
+      metadata {
+        labels = {
+          app = "frontend"
+        }
+      }
+
+      spec {
+        container {
+          image = "lvthillo/movie-frontend"
+          name  = "frontend"
+
+          /*resources {
+            limits {
+              cpu    = "0.5"
+              memory = "512Mi"
+            }
+            requests {
+              cpu    = "250m"
+              memory = "50Mi"
+            }
+          }*/
+
+          /*liveness_probe {
+            http_get {
+              path = "/nginx_status"
+              port = 80
+
+              http_header {
+                name  = "X-Custom-Header"
+                value = "Awesome"
+              }
+            }
+
+            initial_delay_seconds = 3
+            period_seconds        = 3
+          }*/
+        }
+      }
+    }
+  }
+}
+
+resource "kubernetes_service" "svc-frontend" {
+  metadata {
+    name = "svc-frontend"
+    namespace = "${kubernetes_namespace.demo-namespace.metadata.0.name}"
+  }
+  spec {
+    selector = {
+      app = "${kubernetes_deployment.frontend.metadata.0.labels.app}"
+    }
+    session_affinity = "ClientIP"
+    port {
+      port        = 80
+      target_port = 80
+      node_port   = 32002
     }
 
     type = "NodePort"
