@@ -1,5 +1,7 @@
-# terraform-kubernetes-playground
-Terraform used to deploy a 3-tier application in Kubernetes
+# Kubernetes playground
+- sping up multi-node Kubernetes cluster using Vagrant
+- Use Terraform to deploy a 3-tier application in Kubernetes
+- Use ArgoCD to deploy the 3-tier application (use deploymentfiles)
 
 
 ## Spin up a Kubernetes cluster
@@ -66,6 +68,8 @@ mongodb         1/1     1            1           76s
 ```
 
 Check services. We had to expose the backend service because Angular will access it from within the browser.
+
+## Deploy ArgoCD
 ```
 $ kubectl get svc -n my-demo-namespace
 NAME                TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
@@ -75,7 +79,18 @@ svc-mongo-express   NodePort    10.100.19.174    <none>        8081:32000/TCP   
 svc-mongodb         ClusterIP   10.101.25.154    <none>        27017/TCP        3m45s
 ```
 
+```
+$ kubectl create namespace argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+$ kubectl port-forward svc/argocd-server -n argocd 8080:443
+```
+
+Visit localhost:8080. The username is admin. To get the password run:
+```
+$ kubectl get pods -n argocd -l app.kubernetes.io/name=argocd-server -o name | cut -d'/' -f 2
+argocd-server-846cf6844-bzrp9
+```
+
 - [ ] Introduce secrets instead of configmaps
 - [ ] Introduce liveness and readiness probes to control pod startup
 - [ ] Create a LB + introduce ingress
-- [ ] Set   

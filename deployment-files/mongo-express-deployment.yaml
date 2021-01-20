@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: mongo-express
+  name: mongo-express
+  namespace: my-demo-namespace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo-express
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: mongo-express
+    spec:
+      containers:
+      - image: mongo-express
+        name: mongo-express
+        envFrom:
+          - secretRef:
+              name: mongo-express-creds
+              optional: false
+          - configMapRef:
+              name: cm-mongo-express
+              optional: false
+        imagePullPolicy: Always

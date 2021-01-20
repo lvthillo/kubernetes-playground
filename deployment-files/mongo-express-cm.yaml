@@ -1,0 +1,7 @@
+apiVersion: v1
+data:
+  ME_CONFIG_MONGODB_SERVER: svc-mongodb
+kind: ConfigMap
+metadata:
+  name: cm-mongo-express
+  namespace: my-demo-namespace
