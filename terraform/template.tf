@@ -11,7 +11,7 @@ resource "kubernetes_namespace" "demo-namespace" {
 // mongodb
 resource "kubernetes_deployment" "mongodb" {
   metadata {
-    name = "mongodb"
+    name      = "mongodb"
     namespace = kubernetes_namespace.demo-namespace.metadata[0].name
     labels = {
       app = "mongodb"
@@ -47,7 +47,7 @@ resource "kubernetes_deployment" "mongodb" {
 
           env_from {
             config_map_ref {
-              name = kubernetes_config_map.cm-mongodb.metadata[0].name  
+              name = kubernetes_config_map.cm-mongodb.metadata[0].name
             }
           }
 
@@ -62,13 +62,13 @@ resource "kubernetes_deployment" "mongodb" {
             }
           }
 
-          liveness_probe {
-            exec {
-              command =  ["bash", "-c", "mongo -u $MONGO_INITDB_ROOT_USERNAME -p $MONGO_INITDB_ROOT_PASSWORD --eval db.adminCommand(\"ping\")"]
-            }
-            initial_delay_seconds = 3
-            period_seconds        = 1
-          }
+          # liveness_probe {
+          #   exec {
+          #     command = ["\"bash\", \"-c\", \"mongo -u $MONGO_INITDB_ROOT_USERNAME -p $MONGO_INITDB_ROOT_PASSWORD --eval db.adminCommand('ping')\""]
+          #   }
+          #   initial_delay_seconds = 5
+          #   period_seconds        = 3
+          # }
         }
       }
     }
@@ -78,7 +78,7 @@ resource "kubernetes_deployment" "mongodb" {
 // mongodb svc
 resource "kubernetes_service" "svc-mongodb" {
   metadata {
-    name = "svc-mongodb"
+    name      = "svc-mongodb"
     namespace = kubernetes_namespace.demo-namespace.metadata.0.name
   }
   spec {
@@ -97,7 +97,7 @@ resource "kubernetes_service" "svc-mongodb" {
 // mongodb configmap
 resource "kubernetes_config_map" "cm-mongodb" {
   metadata {
-    name = "cm-mongodb"
+    name      = "cm-mongodb"
     namespace = kubernetes_namespace.demo-namespace.metadata.0.name
   }
 
@@ -110,7 +110,7 @@ resource "kubernetes_config_map" "cm-mongodb" {
 // monbodb secret
 resource "kubernetes_secret" "scrt-mongodb" {
   metadata {
-    name = "mongodb-creds"
+    name      = "mongodb-creds"
     namespace = kubernetes_namespace.demo-namespace.metadata.0.name
   }
 
@@ -122,297 +122,334 @@ resource "kubernetes_secret" "scrt-mongodb" {
   type = "opaque"
 }
 
-# //mongo express deployment
-# //mongo-express UI exposed to public world
-# resource "kubernetes_deployment" "mongo-express" {
-#   metadata {
-#     name = "mongo-express"
-#     namespace = "${kubernetes_namespace.demo-namespace.metadata.0.name}"
-#     labels = {
-#       app = "mongo-express"
-#     }
-#   }
+//mongo express deployment
+//mongo-express UI exposed to public world
+resource "kubernetes_deployment" "mongo-express" {
+  metadata {
+    name      = "mongo-express"
+    namespace = kubernetes_namespace.demo-namespace.metadata.0.name
+    labels = {
+      app = "mongo-express"
+    }
+  }
 
-#   spec {
-#     replicas = 1
+  spec {
+    replicas = 1
 
-#     selector {
-#       match_labels = {
-#          app = "mongo-express"
-#       }
-#     }
+    selector {
+      match_labels = {
+        app = "mongo-express"
+      }
+    }
 
-#     template {
-#       metadata {
-#         labels = {
-#           app = "mongo-express"
-#         }
-#       }
+    template {
+      metadata {
+        labels = {
+          app = "mongo-express"
+        }
+      }
 
-#       spec {
-#         container {
-#           image = "mongo-express"
-#           name  = "mongo-express"
+      spec {
+        container {
+          image = "mongo-express"
+          name  = "mongo-express"
 
-#           env_from {
-#             config_map_ref {
-#               name = kubernetes_config_map.cm-mongo-express.metadata[0].name
-#             }
-#           }
+          env_from {
+            secret_ref {
+              name = kubernetes_secret.scrt-mongo-express.metadata[0].name
+            }
+          }
 
-#           /*resources {
-#             limits {
-#               cpu    = "0.5"
-#               memory = "512Mi"
-#             }
-#             requests {
-#               cpu    = "250m"
-#               memory = "50Mi"
-#             }
-#           }*/
+          env_from {
+            config_map_ref {
+              name = kubernetes_config_map.cm-mongo-express.metadata[0].name
+            }
+          }
 
-#           /*liveness_probe {
-#             http_get {
-#               path = "/nginx_status"
-#               port = 80
+          /*resources {
+            limits {
+              cpu    = "0.5"
+              memory = "512Mi"
+            }
+            requests {
+              cpu    = "250m"
+              memory = "50Mi"
+            }
+          }*/
 
-#               http_header {
-#                 name  = "X-Custom-Header"
-#                 value = "Awesome"
-#               }
-#             }
+          /*liveness_probe {
+            http_get {
+              path = "/nginx_status"
+              port = 80
 
-#             initial_delay_seconds = 3
-#             period_seconds        = 3
-#           }*/
-#         }
-#       }
-#     }
-#   }
-# }
+              http_header {
+                name  = "X-Custom-Header"
+                value = "Awesome"
+              }
+            }
 
-# // mongo express configmap
-# resource "kubernetes_config_map" "cm-mongo-express" {
-#   metadata {
-#     name = "cm-mongo-express"
-#     namespace = "${kubernetes_namespace.demo-namespace.metadata.0.name}"
-#   }
+            initial_delay_seconds = 3
+            period_seconds        = 3
+          }*/
+        }
+      }
+    }
+  }
+}
 
-#   // improve creds with secret
-#   data = {
-#       ME_CONFIG_BASICAUTH_USERNAME = "test"
-#       ME_CONFIG_BASICAUTH_PASSWORD = "test"
-#       ME_CONFIG_MONGODB_ADMINUSERNAME = "root-user"
-#       ME_CONFIG_MONGODB_ADMINPASSWORD = "secret"
-#       ME_CONFIG_MONGODB_SERVER = "${kubernetes_service.svc-mongodb.metadata.0.name}"
-#   }
-# }
+// mongo express configmap
+resource "kubernetes_config_map" "cm-mongo-express" {
+  metadata {
+    name      = "cm-mongo-express"
+    namespace = kubernetes_namespace.demo-namespace.metadata.0.name
+  }
 
-# //mongo express svc (exposed publicly)
-# resource "kubernetes_service" "svc-mongo-express" {
-#   metadata {
-#     name = "svc-mongo-express"
-#     namespace = "${kubernetes_namespace.demo-namespace.metadata.0.name}"
-#   }
-#   spec {
-#     selector = {
-#       app = "${kubernetes_deployment.mongo-express.metadata.0.labels.app}"
-#     }
-#     session_affinity = "ClientIP"
-#     port {
-#       port        = 8081
-#       target_port = 8081
-#       node_port   = 32000
-#     }
+  // improve creds with secret
+  data = {
+    ME_CONFIG_MONGODB_SERVER = "${kubernetes_service.svc-mongodb.metadata.0.name}"
+  }
+}
 
-#     type = "NodePort"
-#   }
-# }
+resource "kubernetes_secret" "scrt-mongo-express" {
+  metadata {
+    name      = "mongo-express-creds"
+    namespace = kubernetes_namespace.demo-namespace.metadata.0.name
+  }
+
+  data = {
+    ME_CONFIG_BASICAUTH_USERNAME    = "test"
+    ME_CONFIG_BASICAUTH_PASSWORD    = "test"
+    ME_CONFIG_MONGODB_ADMINUSERNAME = "root-user"
+    ME_CONFIG_MONGODB_ADMINPASSWORD = "secret"
+  }
+
+  type = "opaque"
+}
+
+//mongo express svc (exposed publicly)
+resource "kubernetes_service" "svc-mongo-express" {
+  metadata {
+    name      = "svc-mongo-express"
+    namespace = kubernetes_namespace.demo-namespace.metadata.0.name
+  }
+  spec {
+    selector = {
+      app = "${kubernetes_deployment.mongo-express.metadata.0.labels.app}"
+    }
+    session_affinity = "ClientIP"
+    port {
+      port        = 8081
+      target_port = 8081
+      node_port   = 32000
+    }
+
+    type = "NodePort"
+  }
+}
 
 # # Go backend deployment
-# resource "kubernetes_deployment" "backend" {
-#   metadata {
-#     name = "backend"
-#     namespace = "${kubernetes_namespace.demo-namespace.metadata.0.name}"
-#     labels = {
-#       app = "backend"
-#     }
-#   }
+resource "kubernetes_deployment" "backend" {
+  metadata {
+    name      = "backend"
+    namespace = kubernetes_namespace.demo-namespace.metadata.0.name
+    labels = {
+      app = "backend"
+    }
+  }
 
-#   spec {
-#     replicas = 1
+  spec {
+    replicas = 1
 
-#     selector {
-#       match_labels = {
-#          app = "backend"
-#       }
-#     }
+    selector {
+      match_labels = {
+        app = "backend"
+      }
+    }
 
-#     template {
-#       metadata {
-#         labels = {
-#           app = "backend"
-#         }
-#       }
+    template {
+      metadata {
+        labels = {
+          app = "backend"
+        }
+      }
 
-#       spec {
-#         container {
-#           image = "lvthillo/movie-backend"
-#           name  = "backend"
+      spec {
+        container {
+          image = "lvthillo/movie-backend"
+          name  = "backend"
 
-#           env_from {
-#             config_map_ref {
-#               name = kubernetes_config_map.cm-backend.metadata[0].name
-#             }
-#           }
+          env_from {
+            secret_ref {
+              name = kubernetes_secret.scrt-backend.metadata[0].name
+            }
+          }
 
-#           /*resources {
-#             limits {
-#               cpu    = "0.5"
-#               memory = "512Mi"
-#             }
-#             requests {
-#               cpu    = "250m"
-#               memory = "50Mi"
-#             }
-#           }*/
+          env_from {
+            config_map_ref {
+              name = kubernetes_config_map.cm-backend.metadata[0].name
+            }
+          }
 
-#           /*liveness_probe {
-#             http_get {
-#               path = "/nginx_status"
-#               port = 80
+          /*resources {
+            limits {
+              cpu    = "0.5"
+              memory = "512Mi"
+            }
+            requests {
+              cpu    = "250m"
+              memory = "50Mi"
+            }
+          }*/
 
-#               http_header {
-#                 name  = "X-Custom-Header"
-#                 value = "Awesome"
-#               }
-#             }
+          /*liveness_probe {
+            http_get {
+              path = "/nginx_status"
+              port = 80
 
-#             initial_delay_seconds = 3
-#             period_seconds        = 3
-#           }*/
-#         }
-#       }
-#     }
-#   }
-# }
+              http_header {
+                name  = "X-Custom-Header"
+                value = "Awesome"
+              }
+            }
 
-# # go backend configmap
-# resource "kubernetes_config_map" "cm-backend" {
-#   metadata {
-#     name = "cm-backend"
-#     namespace = "${kubernetes_namespace.demo-namespace.metadata.0.name}"
-#   }
+            initial_delay_seconds = 3
+            period_seconds        = 3
+          }*/
+        }
+      }
+    }
+  }
+}
 
-#   // improve creds with secret
-#   data = {
-#       MONGODB_USERNAME = "root-user"
-#       MONGODB_PASSWORD = "secret"
-#       MONGODB_ENDPOINT = "${kubernetes_service.svc-mongodb.metadata.0.name}:${kubernetes_service.svc-mongodb.spec.0.port.0.port}"
-#   }
-# }
+# go backend configmap
+resource "kubernetes_config_map" "cm-backend" {
+  metadata {
+    name      = "cm-backend"
+    namespace = kubernetes_namespace.demo-namespace.metadata.0.name
+  }
+
+  // improve creds with secret
+  data = {
+    MONGODB_ENDPOINT = "${kubernetes_service.svc-mongodb.metadata.0.name}:${kubernetes_service.svc-mongodb.spec.0.port.0.port}"
+  }
+}
+
+// monbodb secret
+resource "kubernetes_secret" "scrt-backend" {
+  metadata {
+    name      = "backend-creds"
+    namespace = kubernetes_namespace.demo-namespace.metadata.0.name
+  }
+
+  data = {
+    MONGODB_USERNAME = "root-user"
+    MONGODB_PASSWORD = "secret"
+  }
+
+  type = "opaque"
+}
 
 # # go backend svc
 # # exposed publicly because angular is ran from the brower (to connect)
-# resource "kubernetes_service" "svc-backend" {
-#   metadata {
-#     name = "svc-backend"
-#     namespace = "${kubernetes_namespace.demo-namespace.metadata.0.name}"
-#   }
-#   spec {
-#     selector = {
-#       app = "${kubernetes_deployment.backend.metadata.0.labels.app}"
-#     }
-#     session_affinity = "ClientIP"
-#     port {
-#       port        = 8080
-#       target_port = 8080
-#       node_port   = 32001
-#     }
+resource "kubernetes_service" "svc-backend" {
+  metadata {
+    name      = "svc-backend"
+    namespace = kubernetes_namespace.demo-namespace.metadata.0.name
+  }
+  spec {
+    selector = {
+      app = "${kubernetes_deployment.backend.metadata.0.labels.app}"
+    }
+    session_affinity = "ClientIP"
+    port {
+      port        = 8080
+      target_port = 8080
+      node_port   = 32001
+    }
 
-#     type = "NodePort"
-#   }
-# }
+    type = "NodePort"
+  }
+}
 
 # # frontend angular deployment
-# resource "kubernetes_deployment" "frontend" {
-#   metadata {
-#     name = "frontend"
-#     namespace = "${kubernetes_namespace.demo-namespace.metadata.0.name}"
-#     labels = {
-#       app = "frontend"
-#     }
-#   }
+resource "kubernetes_deployment" "frontend" {
+  metadata {
+    name      = "frontend"
+    namespace = kubernetes_namespace.demo-namespace.metadata.0.name
+    labels = {
+      app = "frontend"
+    }
+  }
 
-#   spec {
-#     replicas = 1
+  spec {
+    replicas = 1
 
-#     selector {
-#       match_labels = {
-#          app = "frontend"
-#       }
-#     }
+    selector {
+      match_labels = {
+        app = "frontend"
+      }
+    }
 
-#     template {
-#       metadata {
-#         labels = {
-#           app = "frontend"
-#         }
-#       }
+    template {
+      metadata {
+        labels = {
+          app = "frontend"
+        }
+      }
 
-#       spec {
-#         container {
-#           image = "lvthillo/movie-frontend"
-#           name  = "frontend"
+      spec {
+        container {
+          image = "lvthillo/movie-frontend"
+          name  = "frontend"
 
-#           /*resources {
-#             limits {
-#               cpu    = "0.5"
-#               memory = "512Mi"
-#             }
-#             requests {
-#               cpu    = "250m"
-#               memory = "50Mi"
-#             }
-#           }*/
+          /*resources {
+            limits {
+              cpu    = "0.5"
+              memory = "512Mi"
+            }
+            requests {
+              cpu    = "250m"
+              memory = "50Mi"
+            }
+          }*/
 
-#           /*liveness_probe {
-#             http_get {
-#               path = "/nginx_status"
-#               port = 80
+          /*liveness_probe {
+            http_get {
+              path = "/nginx_status"
+              port = 80
 
-#               http_header {
-#                 name  = "X-Custom-Header"
-#                 value = "Awesome"
-#               }
-#             }
+              http_header {
+                name  = "X-Custom-Header"
+                value = "Awesome"
+              }
+            }
 
-#             initial_delay_seconds = 3
-#             period_seconds        = 3
-#           }*/
-#         }
-#       }
-#     }
-#   }
-# }
+            initial_delay_seconds = 3
+            period_seconds        = 3
+          }*/
+        }
+      }
+    }
+  }
+}
 
-# # frontend svc (exposed)
-# resource "kubernetes_service" "svc-frontend" {
-#   metadata {
-#     name = "svc-frontend"
-#     namespace = "${kubernetes_namespace.demo-namespace.metadata.0.name}"
-#   }
-#   spec {
-#     selector = {
-#       app = "${kubernetes_deployment.frontend.metadata.0.labels.app}"
-#     }
-#     session_affinity = "ClientIP"
-#     port {
-#       port        = 80
-#       target_port = 80
-#       node_port   = 32002
-#     }
+# frontend svc (exposed)
+resource "kubernetes_service" "svc-frontend" {
+  metadata {
+    name      = "svc-frontend"
+    namespace = kubernetes_namespace.demo-namespace.metadata.0.name
+  }
+  spec {
+    selector = {
+      app = "${kubernetes_deployment.frontend.metadata.0.labels.app}"
+    }
+    session_affinity = "ClientIP"
+    port {
+      port        = 80
+      target_port = 80
+      node_port   = 32002
+    }
 
-#     type = "NodePort"
-#   }
-# }
+    type = "NodePort"
+  }
+}
