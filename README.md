@@ -13,6 +13,7 @@ This will spin up a Kubernetes cluster by using Vagrant and Ansible.
 $ git clone git@github.com:lvthillo/vagrant-ansible-kubernetes.git
 $ cd vagrant-ansible-kubernetes
 $ vagrant up
+$ vagrant plugin install vagrant-scp
 $ vagrant scp k8s-master:/home/vagrant/.kube/config ~/.kube/config
 $ kubectl get nodes
 NAME         STATUS   ROLES                  AGE     VERSION
